@@ -124,6 +124,4 @@ model.train(data="data.yaml", epochs=25, imgsz=360, batch=16)
 
 ---
 
-## 📌 Catatan
-- File model `.pt` (misalnya `best.pt`) berukuran besar. Jika tidak bisa diupload ke GitHub, Anda bisa menyediakannya via **Google Drive** dan mencantumkan link di sini.  
-- Jangan upload file `.env` ke publik karena berisi **token rahasia**.  
+
