@@ -1,0 +1,1147 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="live-detection">
+    <!-- Header Section -->
+    <header class="page-header">
+        <div class="header-content">
+            <h1>Deteksi Real-time</h1>
+            <p class="subtitle">Analisis daun terong secara langsung menggunakan kamera Anda</p>
+        </div>
+        
+        <!-- Connection Status -->
+        <div class="status-indicators">
+            <div class="status-item">
+                <span class="status-dot" id="camera-status-dot"></span>
+                <span>Kamera: <strong id="camera-status-text">Tidak Aktif</strong></span>
+            </div>
+            <div class="status-item">
+                <span class="status-dot" id="telegram-status-dot"></span>
+                <span>Telegram: <strong id="telegram-status-text">Aktif</strong></span>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-content">
+        <!-- Camera Feed Section -->
+        <div class="camera-section">
+            <div class="video-container">
+                <img id="video-stream" alt="Video Kamera" class="video-stream" style="display: none;">
+                <div id="camera-placeholder" class="camera-placeholder">
+                    <i class="bi bi-camera"></i>
+                    <p>Pilih kamera dan tekan "Mulai Deteksi"</p>
+                </div>
+                <div id="detection-overlay" class="detection-overlay" style="display: none;">
+                    <div class="overlay-content">
+                        <i class="bi bi-search"></i>
+                        <p>Deteksi sedang berjalan...</p>
+                    </div>
+                </div>
+                <div id="camera-error" class="camera-error" style="display: none;">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <p id="camera-error-message">Gagal mengakses kamera. Pastikan kamera terhubung dan izin diberikan.</p>
+                    <button id="retry-camera" class="btn-secondary">Coba Lagi</button>
+                </div>
+            </div>
+            
+            <!-- Camera Controls -->
+            <div class="camera-controls">
+                <div class="control-group">
+                    <label for="camera-select">
+                        <i class="bi bi-camera-reels"></i> Pilih Kamera:
+                    </label>
+                    <select id="camera-select" class="camera-select">
+                        <option value="">Memuat kamera...</option>
+                    </select>
+                </div>
+                
+                <div class="control-buttons">
+                    <button id="test-camera" class="btn-outline" disabled>
+                        <i class="bi bi-play-circle"></i> Uji Kamera
+                    </button>
+                    <button id="start-camera" class="btn-primary" disabled>
+                        <i class="bi bi-play-fill"></i> Mulai Deteksi
+                    </button>
+                    <button id="stop-camera" class="btn-danger" disabled>
+                        <i class="bi bi-stop-circle"></i> Hentikan
+                    </button>
+                </div>
+                
+                <div id="camera-loading" class="camera-loading" style="display: none;">
+                    <div class="spinner"></div>
+                    <span>Menghubungkan ke kamera...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detection Results Section -->
+        <div class="results-section">
+            <div class="results-header">
+                <h2>Hasil Deteksi Terkini</h2>
+                <div class="refresh-indicator" id="refresh-indicator">
+                    <i class="bi bi-arrow-repeat"></i>
+                </div>
+            </div>
+            
+            <div class="results-container">
+                <div id="no-detection-message" class="placeholder-text">
+                    <i class="bi bi-info-circle"></i>
+                    <p>Hasil deteksi akan muncul di sini setelah Anda memulai deteksi</p>
+                </div>
+                
+                <div id="results-list" class="results-list" style="display: none;">
+                    <!-- Hasil deteksi akan muncul di sini -->
+                </div>
+                
+                <div id="stats-grid" class="stats-grid" style="display: none;">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="bi bi-clock"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">Waktu Deteksi</span>
+                            <span class="stat-value" id="detection-time">0.00 detik</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="bi bi-grid"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">Total Objek</span>
+                            <span class="stat-value" id="total-objects">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="bi bi-graph-up"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">Rata-rata Akurasi</span>
+                            <span class="stat-value" id="average-confidence">0.00%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="action-buttons" class="action-buttons" style="display: none;">
+                    <button id="save-detection" class="btn-primary">
+                        <i class="bi bi-save"></i> Simpan Hasil
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Instructions Section -->
+    <div class="instructions-section">
+        <div class="instructions-header">
+            <i class="bi bi-info-circle"></i>
+            <h3>Panduan Penggunaan</h3>
+        </div>
+        <div class="instructions-content">
+            <div class="instruction-item">
+                <div class="step">1</div>
+                <div class="step-content">
+                    <h4>Persiapkan Pencahayaan</h4>
+                    <p>Pastikan area yang akan dipindai memiliki pencahayaan yang baik dan merata.</p>
+                </div>
+            </div>
+            <div class="instruction-item">
+                <div class="step">2</div>
+                <div class="step-content">
+                    <h4>Posisi Kamera</h4>
+                    <p>Pegang kamera dengan stabil dan arahkan ke daun terong yang akan dianalisis.</p>
+                </div>
+            </div>
+            <div class="instruction-item">
+                <div class="step">3</div>
+                <div class="step-content">
+                    <h4>Jarak Optimal</h4>
+                    <p>Pertahankan jarak 30-50 cm dari daun untuk hasil terbaik.</p>
+                </div>
+            </div>
+            <div class="instruction-item">
+                <div class="step">4</div>
+                <div class="step-content">
+                    <h4>Kualitas Gambar</h4>
+                    <p>Pastikan daun terlihat jelas dalam frame kamera tanpa gangguan objek lain.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Elemen DOM
+    const videoStream = document.getElementById('video-stream');
+    const cameraPlaceholder = document.getElementById('camera-placeholder');
+    const detectionOverlay = document.getElementById('detection-overlay');
+    const cameraError = document.getElementById('camera-error');
+    const cameraErrorMessage = document.getElementById('camera-error-message');
+    const retryCameraBtn = document.getElementById('retry-camera');
+    const cameraSelect = document.getElementById('camera-select');
+    const testCameraBtn = document.getElementById('test-camera');
+    const startCameraBtn = document.getElementById('start-camera');
+    const stopCameraBtn = document.getElementById('stop-camera');
+    const cameraLoading = document.getElementById('camera-loading');
+    const noDetectionMessage = document.getElementById('no-detection-message');
+    const resultsList = document.getElementById('results-list');
+    const statsGrid = document.getElementById('stats-grid');
+    const detectionTime = document.getElementById('detection-time');
+    const totalObjects = document.getElementById('total-objects');
+    const averageConfidence = document.getElementById('average-confidence');
+    const refreshIndicator = document.getElementById('refresh-indicator');
+    const cameraStatusDot = document.getElementById('camera-status-dot');
+    const cameraStatusText = document.getElementById('camera-status-text');
+    const telegramStatusDot = document.getElementById('telegram-status-dot');
+    const telegramStatusText = document.getElementById('telegram-status-text');
+    const saveDetectionBtn = document.getElementById('save-detection');
+    const actionButtons = document.getElementById('action-buttons');
+    
+    // Status kamera
+    let isCameraActive = false;
+    let cameraCheckInterval = null;
+    let detectionUpdateInterval = null;
+    
+    // Fungsi untuk memperbarui status kamera
+    function updateCameraStatus(active, message, isError = false) {
+        isCameraActive = active;
+        
+        // Update indikator
+        if (active) {
+            cameraStatusDot.className = 'status-dot status-online';
+            cameraStatusText.textContent = 'Aktif';
+            cameraPlaceholder.style.display = 'none';
+            cameraError.style.display = 'none';
+            videoStream.style.display = 'block';
+            detectionOverlay.style.display = 'block';
+        } else {
+            cameraStatusDot.className = isError ? 'status-dot status-error' : 'status-dot status-offline';
+            cameraStatusText.textContent = isError ? 'Error' : 'Tidak Aktif';
+            cameraPlaceholder.style.display = isError ? 'none' : 'flex';
+            cameraError.style.display = isError ? 'flex' : 'none';
+            videoStream.style.display = 'none';
+            detectionOverlay.style.display = 'none';
+        }
+        
+        // Update tombol
+        startCameraBtn.disabled = active;
+        stopCameraBtn.disabled = !active;
+        testCameraBtn.disabled = !cameraSelect.options.length || cameraSelect.value === '';
+    }
+    
+    // Fungsi untuk memeriksa status kamera secara berkala
+    async function checkCameraStatus() {
+        try {
+            const response = await fetch('/get_detection_results', {
+                cache: 'no-store'
+            });
+            
+            if (!response.ok) {
+                throw new Error('Gagal memeriksa status kamera');
+            }
+            
+            const data = await response.json();
+            
+            if (Object.keys(data).length > 0 && data.timestamp) {
+                if (!isCameraActive) {
+                    updateCameraStatus(true, 'Kamera aktif dan mendeteksi');
+                    
+                    // Mulai interval untuk memperbarui hasil deteksi
+                    if (!detectionUpdateInterval) {
+                        detectionUpdateInterval = setInterval(updateDetectionResults, 1000);
+                    }
+                }
+            } else {
+                if (isCameraActive) {
+                    updateCameraStatus(false, 'Kamera tidak aktif');
+                    
+                    // Hentikan interval pembaruan deteksi
+                    if (detectionUpdateInterval) {
+                        clearInterval(detectionUpdateInterval);
+                        detectionUpdateInterval = null;
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error checking camera status:', error);
+            
+            // Hanya perbarui status jika kamera sebelumnya aktif
+            if (isCameraActive) {
+                updateCameraStatus(false, 'Kamera terputus', true);
+            }
+        }
+    }
+    
+    // Fungsi untuk memuat daftar kamera
+    async function loadCameras() {
+        try {
+            cameraSelect.innerHTML = '<option value="">Memuat kamera...</option>';
+            testCameraBtn.disabled = true;
+            startCameraBtn.disabled = true;
+            cameraLoading.style.display = 'flex';
+            
+            const response = await fetch('/check_camera', {
+                cache: 'no-store'
+            });
+            
+            if (!response.ok) {
+                throw new Error('Gagal memuat daftar kamera');
+            }
+            
+            const data = await response.json();
+            
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            
+            // Kosongkan select
+            cameraSelect.innerHTML = '';
+            
+            // Tambahkan opsi untuk setiap kamera
+            if (data.cameras && data.cameras.length > 0) {
+                data.cameras.forEach(camera => {
+                    const option = document.createElement('option');
+                    option.value = camera.index;
+                    option.textContent = camera.name;
+                    cameraSelect.appendChild(option);
+                });
+                
+                cameraSelect.selectedIndex = 0;
+                testCameraBtn.disabled = false;
+                startCameraBtn.disabled = false;
+                updateCameraStatus(false, 'Siap untuk memulai deteksi');
+            } else {
+                cameraSelect.innerHTML = '<option value="">Tidak ada kamera yang tersedia</option>';
+                updateCameraStatus(false, 'Tidak ada kamera', true);
+                cameraErrorMessage.textContent = 'Tidak ada kamera yang terdeteksi. Pastikan kamera terhubung dan izin diberikan.';
+                cameraError.style.display = 'flex';
+            }
+            
+        } catch (error) {
+            console.error('Error loading cameras:', error);
+            cameraSelect.innerHTML = '<option value="">Gagal memuat kamera</option>';
+            updateCameraStatus(false, 'Gagal memuat kamera', true);
+            cameraErrorMessage.textContent = error.message;
+            cameraError.style.display = 'flex';
+            showToast(`Gagal memuat kamera: ${error.message}`, 'error');
+        } finally {
+            cameraLoading.style.display = 'none';
+        }
+    }
+    
+    // Fungsi untuk menguji kamera
+    async function testCamera() {
+        const cameraIndex = cameraSelect.value;
+        if (!cameraIndex) return;
+        
+        try {
+            const response = await fetch('/test_camera', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'no-cache'
+                },
+                body: JSON.stringify({ camera_index: cameraIndex }),
+                cache: 'no-store'
+            });
+            
+            if (!response.ok) {
+                throw new Error('Gagal menguji kamera');
+            }
+            
+            const data = await response.json();
+            
+            // Tampilkan toast sukses
+            showToast('Uji kamera berhasil', 'success');
+            
+        } catch (error) {
+            console.error('Error testing camera:', error);
+            showToast(`Gagal menguji kamera: ${error.message}`, 'error');
+        }
+    }
+    
+    // Fungsi untuk memulai kamera
+    async function startCamera() {
+        const cameraIndex = cameraSelect.value;
+        if (!cameraIndex) return;
+        
+        try {
+            // Tampilkan indikator loading
+            cameraLoading.style.display = 'flex';
+            updateCameraStatus(false, 'Menghubungkan ke kamera...', false);
+            
+            const response = await fetch('/start_camera', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'no-cache'
+                },
+                body: JSON.stringify({ camera_index: cameraIndex }),
+                cache: 'no-store'
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || 'Gagal memulai kamera');
+            }
+            
+            const data = await response.json();
+            
+            showToast('Kamera berhasil dimulai', 'success');
+            updateCameraStatus(true, 'Kamera aktif dan mendeteksi');
+            
+            // Mulai interval untuk memeriksa status kamera
+            if (cameraCheckInterval) {
+                clearInterval(cameraCheckInterval);
+            }
+            cameraCheckInterval = setInterval(checkCameraStatus, 2000);
+            
+            // Mulai streaming video
+            startVideoStream();
+            
+            // Mulai pembaruan hasil deteksi
+            if (detectionUpdateInterval) {
+                clearInterval(detectionUpdateInterval);
+            }
+            detectionUpdateInterval = setInterval(updateDetectionResults, 1000);
+            updateDetectionResults(); // Panggil langsung pertama kali
+            
+        } catch (error) {
+            console.error('Error starting camera:', error);
+            updateCameraStatus(false, `Gagal: ${error.message}`, true);
+            cameraErrorMessage.textContent = error.message;
+            showToast(`Gagal memulai kamera: ${error.message}`, 'error');
+        } finally {
+            cameraLoading.style.display = 'none';
+        }
+    }
+    
+    // Fungsi untuk menghentikan kamera
+    async function stopCamera() {
+        try {
+            cameraLoading.style.display = 'flex';
+            
+            const response = await fetch('/stop_camera', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'no-cache'
+                },
+                cache: 'no-store'
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || 'Gagal menghentikan kamera');
+            }
+            
+            const data = await response.json();
+            
+            // Hentikan interval pemantauan
+            if (cameraCheckInterval) {
+                clearInterval(cameraCheckInterval);
+                cameraCheckInterval = null;
+            }
+            
+            if (detectionUpdateInterval) {
+                clearInterval(detectionUpdateInterval);
+                detectionUpdateInterval = null;
+            }
+            
+            showToast('Kamera berhasil dihentikan', 'success');
+            updateCameraStatus(false, 'Kamera dihentikan');
+            
+        } catch (error) {
+            console.error('Error stopping camera:', error);
+            updateCameraStatus(false, `Gagal: ${error.message}`, true);
+            showToast(`Gagal menghentikan kamera: ${error.message}`, 'error');
+        } finally {
+            cameraLoading.style.display = 'none';
+        }
+    }
+    
+    // Fungsi untuk memperbarui hasil deteksi
+    async function updateDetectionResults() {
+        try {
+            refreshIndicator.style.animation = 'rotate 1s linear infinite';
+            
+            const response = await fetch('/get_detection_results', {
+                cache: 'no-store'
+            });
+            
+            if (!response.ok) {
+                throw new Error('Gagal memperbarui hasil deteksi');
+            }
+            
+            const data = await response.json();
+            
+            // Perbarui indikator refresh
+            refreshIndicator.style.animation = 'none';
+            
+            if (Object.keys(data).length === 0 || !data.results || data.results.length === 0) {
+                noDetectionMessage.style.display = 'block';
+                resultsList.style.display = 'none';
+                statsGrid.style.display = 'none';
+                actionButtons.style.display = 'none';
+                return;
+            }
+            
+            // Tampilkan hasil deteksi
+            noDetectionMessage.style.display = 'none';
+            resultsList.style.display = 'block';
+            statsGrid.style.display = 'grid';
+            actionButtons.style.display = 'block';
+            
+            // Update statistik
+            detectionTime.textContent = data.detection_time ? `${data.detection_time.toFixed(2)} detik` : 'N/A';
+            totalObjects.textContent = data.total_objects || 0;
+            averageConfidence.textContent = data.average_confidence ? `${data.average_confidence.toFixed(2)}%` : '0.00%';
+            
+            // Update daftar hasil
+            resultsList.innerHTML = '';
+            data.results.forEach(result => {
+                const resultItem = document.createElement('div');
+                resultItem.className = 'result-item';
+                resultItem.innerHTML = `
+                    <div class="result-info">
+                        <span class="disease">${result.objek}</span>
+                        <span class="confidence">${result.akurasi}</span>
+                    </div>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" style="width: ${result.akurasi.replace('%', '')}%"></div>
+                    </div>
+                `;
+                resultsList.appendChild(resultItem);
+            });
+            
+        } catch (error) {
+            console.error('Error updating detection results:', error);
+            refreshIndicator.style.animation = 'none';
+            
+            // Tampilkan pesan error
+            if (isCameraActive) {
+                noDetectionMessage.innerHTML = `
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <p>Gagal memperbarui hasil deteksi</p>
+                `;
+                noDetectionMessage.style.color = '#dc3545';
+                noDetectionMessage.style.display = 'block';
+            }
+        }
+    }
+    
+    // Fungsi untuk memulai streaming video
+    function startVideoStream() {
+        // Hapus src sebelumnya jika ada
+        if (videoStream.src) {
+            URL.revokeObjectURL(videoStream.src);
+        }
+        
+        // Gunakan timestamp untuk mencegah caching
+        const videoUrl = `/video_feed?t=${Date.now()}`;
+        
+        // Set src
+        videoStream.src = videoUrl;
+        
+        // Tangani error loading video
+        videoStream.onerror = () => {
+            if (isCameraActive) {
+                updateCameraStatus(false, 'Gagal memuat stream video', true);
+                cameraErrorMessage.textContent = 'Gagal memuat stream video. Coba restart kamera.';
+            }
+        };
+    }
+    
+    // Fungsi untuk menyimpan hasil deteksi
+    async function saveDetection() {
+        try {
+            // Ambil data deteksi terbaru
+            const response = await fetch('/get_detection_results', {
+                cache: 'no-store'
+            });
+            
+            if (!response.ok) {
+                throw new Error('Gagal mendapatkan hasil deteksi');
+            }
+            
+            const data = await response.json();
+            
+            if (Object.keys(data).length === 0 || !data.results || data.results.length === 0) {
+                showToast('Tidak ada hasil deteksi untuk disimpan', 'info');
+                return;
+            }
+            
+            // Simpan ke riwayat
+            const formData = new FormData();
+            formData.append('results', JSON.stringify(data));
+            
+            const saveResponse = await fetch('/save_live_detection', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!saveResponse.ok) {
+                throw new Error('Gagal menyimpan hasil deteksi');
+            }
+            
+            showToast('Hasil deteksi berhasil disimpan', 'success');
+            setTimeout(() => {
+                window.location.href = '/history';
+            }, 1000);
+            
+        } catch (error) {
+            console.error('Error saving detection:', error);
+            showToast(`Gagal menyimpan hasil deteksi: ${error.message}`, 'error');
+        }
+    }
+    
+    // Event listeners
+    testCameraBtn.addEventListener('click', testCamera);
+    startCameraBtn.addEventListener('click', startCamera);
+    stopCameraBtn.addEventListener('click', stopCamera);
+    retryCameraBtn.addEventListener('click', loadCameras);
+    saveDetectionBtn.addEventListener('click', saveDetection);
+    
+    // Inisialisasi halaman
+    async function initLiveDetection() {
+        try {
+            // Muat daftar kamera
+            await loadCameras();
+            
+            // Periksa status kamera awal
+            await checkCameraStatus();
+            
+            // Cek status Telegram
+            try {
+                const response = await fetch('/api/system/status');
+                const data = await response.json();
+                if (data.telegram_connected) {
+                    telegramStatusDot.className = 'status-dot status-online';
+                    telegramStatusText.textContent = 'Terhubung';
+                } else {
+                    telegramStatusDot.className = 'status-dot status-offline';
+                    telegramStatusText.textContent = 'Tidak Terhubung';
+                }
+            } catch (error) {
+                console.error('Error checking Telegram status:', error);
+                telegramStatusDot.className = 'status-dot status-error';
+                telegramStatusText.textContent = 'Error';
+            }
+            
+        } catch (error) {
+            console.error('Error initializing live detection:', error);
+            updateCameraStatus(false, `Gagal memulai: ${error.message}`, true);
+            showToast(`Gagal memulai deteksi real-time: ${error.message}`, 'error');
+        }
+    }
+    
+    // Jalankan inisialisasi
+    initLiveDetection();
+});
+</script>
+<style>
+/* Live Detection Container */
+.live-detection {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Header Section */
+.page-header {
+    background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+    border-radius: 16px;
+    padding: 25px;
+    color: white;
+    margin-bottom: 25px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.header-content h1 {
+    margin: 0 0 10px 0;
+    font-size: 2.2rem;
+}
+
+.header-content .subtitle {
+    opacity: 0.9;
+    margin-bottom: 0;
+    font-size: 1.1rem;
+}
+
+.status-indicators {
+    display: flex;
+    gap: 25px;
+    margin-top: 15px;
+}
+
+.status-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.95rem;
+}
+
+.status-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.status-online {
+    background-color: #4ade80;
+}
+
+.status-offline {
+    background-color: #f87171;
+}
+
+.status-error {
+    background-color: #fca5a5;
+}
+
+/* Main Content Layout */
+.main-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+}
+
+/* Camera Section */
+.camera-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.video-container {
+    position: relative;
+    width: 100%;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background-color: #000;
+    min-height: 500px;
+}
+
+.video-wrapper {
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%; /* 16:9 Aspect Ratio */
+}
+
+.video-stream {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.camera-placeholder, .camera-error {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    text-align: center;
+    background-color: #f8f9fa;
+    color: #6c757d;
+    border-radius: 16px;
+}
+
+.camera-error {
+    background-color: #fff8f8;
+    color: #721c24;
+    border-color: #f5c6cb;
+    display: none;
+}
+
+.camera-placeholder i, .camera-error i {
+    font-size: 3.5rem;
+    margin-bottom: 15px;
+}
+
+.camera-error i {
+    color: #ffc107;
+}
+
+.camera-error p {
+    margin-bottom: 15px;
+    max-width: 400px;
+}
+
+.detection-overlay {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 30px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.95rem;
+    backdrop-filter: blur(4px);
+}
+
+/* Camera Controls */
+.camera-controls {
+    background-color: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.control-group {
+    margin-bottom: 15px;
+}
+
+.control-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #495057;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.camera-select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ced4da;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: all 0.2s;
+}
+
+.camera-select:focus {
+    outline: none;
+    border-color: #4361ee;
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+}
+
+.control-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 10px;
+}
+
+/* Results Section */
+.results-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.results-header h2 {
+    margin: 0;
+    color: #212529;
+    font-size: 1.5rem;
+}
+
+.refresh-indicator {
+    animation: rotate 2s linear infinite;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.refresh-indicator:hover {
+    background-color: #f1f1f1;
+    color: #4361ee;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.results-container {
+    background-color: white;
+    border-radius: 16px;
+    padding: 25px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.placeholder-text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px 20px;
+    color: #6c757d;
+    gap: 15px;
+}
+
+.placeholder-text i {
+    font-size: 3rem;
+    color: #e2e8f0;
+}
+
+.results-list {
+    margin-bottom: 20px;
+}
+
+.result-item {
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.result-item:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.result-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.disease {
+    font-weight: 600;
+    color: #212529;
+    font-size: 1.1rem;
+}
+
+.confidence {
+    font-weight: 600;
+    color: #0d6efd;
+}
+
+.confidence-bar {
+    width: 100%;
+    height: 6px;
+    background-color: #e9ecef;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 5px;
+}
+
+.confidence-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4ade80, #3b82f6);
+    border-radius: 3px;
+    transition: width 0.5s ease;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background: linear-gradient(to bottom right, #f8fafc, #f1f5f9);
+    border-radius: 12px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.stat-icon {
+    width: 45px;
+    height: 45px;
+    background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.stat-icon i {
+    color: white;
+    font-size: 1.2rem;
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-label {
+    display: block;
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-bottom: 3px;
+}
+
+.stat-value {
+    font-weight: 700;
+    color: #1e293b;
+    font-size: 1.1rem;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: auto;
+}
+
+/* Instructions Section */
+.instructions-section {
+    background-color: white;
+    border-radius: 16px;
+    padding: 25px;
+    margin-top: 25px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.instructions-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.instructions-header h3 {
+    margin: 0;
+    color: #1e293b;
+    font-size: 1.3rem;
+}
+
+.instructions-content {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+.instruction-item {
+    display: flex;
+    gap: 12px;
+}
+
+.step {
+    min-width: 28px;
+    min-height: 28px;
+    background-color: #4361ee;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.step-content h4 {
+    margin: 0 0 8px 0;
+    color: #1e293b;
+}
+
+.step-content p {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.95rem;
+}
+
+/* Camera Loading */
+.camera-loading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 15px;
+    background-color: #e9ecef;
+    border-radius: 6px;
+    margin-top: 10px;
+}
+
+.camera-loading .spinner {
+    width: 20px;
+    height: 20px;
+    border-width: 2px;
+    margin-bottom: 0;
+}
+
+/* Spinner Animation */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.spinner {
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    border-top: 4px solid #4361ee;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .main-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .instructions-content {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .control-buttons {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .instructions-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .page-header {
+        padding: 20px;
+    }
+    
+    .header-content h1 {
+        font-size: 1.8rem;
+    }
+}
+</style>
+{% endblock %}

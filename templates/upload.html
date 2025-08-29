@@ -1,0 +1,1234 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="upload-page">
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <h1>Upload Gambar atau Video</h1>
+            <p class="hero-subtitle">Unggah gambar atau video untuk deteksi objek penyakit pada daun terong.</p>
+        </div>
+    </section>
+
+    <div class="content-container">
+        <!-- Upload Section -->
+        <div class="upload-section">
+            <div class="upload-card">
+                <div class="upload-header">
+                    <h2><i class="bi bi-cloud-upload"></i> Unggah File</h2>
+                    <p>Pilih atau seret file gambar/video untuk memulai deteksi</p>
+                </div>
+                
+                <div class="upload-area" id="drop-zone">
+                    <div class="upload-icon">
+                        <i class="bi bi-cloud-arrow-up"></i>
+                    </div>
+                    <h3>Unggah File Anda</h3>
+                    <p>Seret dan lepas file di sini, atau</p>
+                    <button type="button" class="btn-primary" id="select-file-btn">
+                        <i class="bi bi-folder2-open"></i> Pilih File
+                    </button>
+                    <input type="file" name="file" id="file-input" accept="image/*,video/mp4,video/avi,video/mov" hidden>
+                    
+                    <!-- File Info -->
+                    <div id="file-info" class="file-info" style="display: none;">
+                        <div class="file-preview">
+                            <img id="file-preview" src="" alt="Pratinjau File" style="display: none;">
+                            <video id="video-preview" controls style="display: none; width: 100%;"></video>
+                        </div>
+                        <div class="file-details">
+                            <p><i class="bi bi-file-earmark"></i> <strong>Nama:</strong> <span id="file-name"></span></p>
+                            <p><i class="bi bi-database"></i> <strong>Ukuran:</strong> <span id="file-size"></span></p>
+                            <p><i class="bi bi-filetype"></i> <strong>Tipe:</strong> <span id="file-type"></span></p>
+                        </div>
+                        <button type="button" id="remove-file" class="btn-remove">
+                            <i class="bi bi-x-circle"></i> Hapus File
+                        </button>
+                    </div>
+                    
+                    <!-- Tombol Deteksi -->
+                    <div id="detect-button-container" style="display: none; margin-top: 15px;">
+                        <button type="button" id="detect-button" class="btn-primary">
+                            <i class="bi bi-search"></i> Deteksi Sekarang
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Loading Indicator -->
+                <div id="loading" class="loading-indicator" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Sedang memproses file...</p>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="progress-bar"></div>
+                    </div>
+                </div>
+                
+                <!-- Error Message -->
+                <div id="error-message" class="error-message" style="display: none;"></div>
+            </div>
+            
+            <!-- Results Section -->
+            <div class="results-container" id="results-container" style="display: none;">
+                <div class="results-card">
+                    <div class="results-header">
+                        <h2><i class="bi bi-clipboard2-check"></i> Hasil Deteksi</h2>
+                        <div class="result-actions">
+                            <button id="download-result" class="btn-icon" title="Download Hasil">
+                                <i class="bi bi-download"></i>
+                            </button>
+                            <button id="share-telegram" class="btn-icon" title="Bagikan ke Telegram">
+                                <i class="bi bi-telegram" style="color: #0088cc;"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="results-body">
+                        <!-- Media Preview -->
+                        <div class="media-preview-container">
+                            <div class="media-preview" id="media-preview"></div>
+                        </div>
+                        
+                        <!-- Detection Results -->
+                        <div class="detection-results">
+                            <div id="detection-results-content"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tips Section -->
+        <div class="tips-section">
+            <div class="tips-header">
+                <h2><i class="bi bi-lightbulb"></i> Tips untuk Hasil Terbaik</h2>
+                <p>Panduan untuk mendapatkan hasil deteksi yang optimal</p>
+            </div>
+            
+            <div class="tips-grid">
+                <div class="tip-card">
+                    <div class="tip-icon">
+                        <i class="bi bi-sun"></i>
+                    </div>
+                    <h3>Pencahayaan</h3>
+                    <p>Gunakan pencahayaan yang baik dan merata untuk hasil deteksi yang akurat. Hindari cahaya silau yang dapat mengganggu detail daun.</p>
+                </div>
+                <div class="tip-card">
+                    <div class="tip-icon">
+                        <i class="bi bi-phone"></i>
+                    </div>
+                    <h3>Resolusi Tinggi</h3>
+                    <p>Gunakan gambar dengan resolusi minimal 1280x720 untuk detail yang jelas. Semakin tinggi resolusi, semakin baik akurasi deteksi.</p>
+                </div>
+                <div class="tip-card">
+                    <div class="tip-icon">
+                        <i class="bi bi-eye"></i>
+                    </div>
+                    <h3>Fokus pada Daun</h3>
+                    <p>Pastikan daun terlihat jelas dalam frame tanpa gangguan objek lain. Usahakan untuk mengisi sebagian besar frame dengan daun.</p>
+                </div>
+                <div class="tip-card">
+                    <div class="tip-icon">
+                        <i class="bi bi-phone-fill"></i>
+                    </div>
+                    <h3>Format yang Didukung</h3>
+                    <p>Gunakan format JPG, PNG, atau MP4 untuk kompatibilitas terbaik. Format lain mungkin tidak didukung oleh sistem kami.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Elemen DOM
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const selectFileBtn = document.getElementById('select-file-btn');
+    const removeFileBtn = document.getElementById('remove-file');
+    const detectButtonContainer = document.getElementById('detect-button-container');
+    const detectButton = document.getElementById('detect-button');
+    const fileInfo = document.getElementById('file-info');
+    const filePreview = document.getElementById('file-preview');
+    const videoPreview = document.getElementById('video-preview');
+    const fileName = document.getElementById('file-name');
+    const fileSize = document.getElementById('file-size');
+    const fileType = document.getElementById('file-type');
+    const loading = document.getElementById('loading');
+    const progressBar = document.getElementById('progress-bar');
+    const errorMessage = document.getElementById('error-message');
+    const resultsContainer = document.getElementById('results-container');
+    const mediaPreview = document.getElementById('media-preview');
+    const detectionResultsContent = document.getElementById('detection-results-content');
+    const downloadResultBtn = document.getElementById('download-result');
+    const shareTelegramBtn = document.getElementById('share-telegram');
+    
+    // Variabel untuk menyimpan file
+    let selectedFile = null;
+    
+    // Fungsi untuk memformat ukuran file
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+    
+    // Fungsi untuk menampilkan file yang dipilih
+    function displaySelectedFile(file) {
+        selectedFile = file;
+        
+        // Tampilkan info file
+        fileName.textContent = file.name;
+        fileSize.textContent = formatFileSize(file.size);
+        fileType.textContent = file.type || 'N/A';
+        
+        // Tampilkan pratinjau
+        filePreview.style.display = 'none';
+        videoPreview.style.display = 'none';
+        
+        const fileURL = URL.createObjectURL(file);
+        
+        if (file.type.startsWith('image/')) {
+            filePreview.src = fileURL;
+            filePreview.style.display = 'block';
+        } else if (file.type.startsWith('video/')) {
+            videoPreview.src = fileURL;
+            videoPreview.style.display = 'block';
+        }
+        
+        // Tampilkan info file dan tombol deteksi
+        fileInfo.style.display = 'block';
+        detectButtonContainer.style.display = 'block';
+        
+        // Sembunyikan pesan error
+        errorMessage.style.display = 'none';
+    }
+    
+    // Fungsi untuk menghapus file yang dipilih
+    function removeSelectedFile() {
+        selectedFile = null;
+        fileInput.value = '';
+        fileInfo.style.display = 'none';
+        detectButtonContainer.style.display = 'none';
+    }
+    
+    // Fungsi untuk menampilkan hasil deteksi
+    function displayDetectionResults(data) {
+        // Sembunyikan loading
+        loading.style.display = 'none';
+        
+        // Tampilkan hasil
+        resultsContainer.style.display = 'block';
+        
+        // Tampilkan media hasil
+        mediaPreview.innerHTML = '';
+        
+        if (data.image) {
+            const img = document.createElement('img');
+            // Perbaikan utama: Menggunakan format base64 yang benar
+            img.src = `data:image/jpeg;base64,${data.image}`;
+            img.className = 'result-image';
+            img.alt = 'Hasil Deteksi';
+            
+            // Tambahkan event listener untuk error
+            img.onerror = function() {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'image-error';
+                errorDiv.innerHTML = `
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <p>Gagal memuat gambar hasil deteksi</p>
+                `;
+                mediaPreview.appendChild(errorDiv);
+            };
+            
+            mediaPreview.appendChild(img);
+            
+            // Tambahkan event listener untuk zoom
+            img.addEventListener('click', function() {
+                const modal = document.createElement('div');
+                modal.className = 'image-modal';
+                modal.innerHTML = `
+                    <span class="close-modal">&times;</span>
+                    <img src="${img.src}" class="modal-content">
+                `;
+                document.body.appendChild(modal);
+                
+                document.querySelector('.close-modal').addEventListener('click', () => {
+                    document.body.removeChild(modal);
+                });
+                
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        document.body.removeChild(modal);
+                    }
+                });
+            });
+        } else if (data.video) {
+            const video = document.createElement('video');
+            video.controls = true;
+            video.className = 'result-video';
+            video.playsInline = true;
+            video.preload = 'auto';
+            
+            const source = document.createElement('source');
+            source.src = `/static/outputs/${data.video}`;
+            source.type = 'video/mp4';
+            
+            video.appendChild(source);
+            mediaPreview.appendChild(video);
+        }
+        
+        // Tampilkan hasil deteksi
+        detectionResultsContent.innerHTML = '';
+        
+        if (data.error) {
+            detectionResultsContent.innerHTML = `
+                <div class="alert alert-error">
+                    <i class="bi bi-exclamation-circle"></i>
+                    <span>${data.error}</span>
+                </div>
+                <div class="action-buttons">
+                    <button id="upload-again" class="btn-secondary">
+                        <i class="bi bi-arrow-counterclockwise"></i> Unggah Lagi
+                    </button>
+                    <a href="/history" class="btn-primary">
+                        <i class="bi bi-clock-history"></i> Lihat Riwayat
+                    </a>
+                </div>
+            `;
+        } else if (data.results && data.results.length > 0) {
+            // Tampilkan daftar hasil
+            let resultsHTML = '<div class="results-list">';
+            data.results.forEach(result => {
+                resultsHTML += `
+                    <div class="result-item">
+                        <div class="result-info">
+                            <span class="disease">${result.objek}</span>
+                            <span class="confidence">${result.akurasi}</span>
+                        </div>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" style="width: ${result.akurasi.replace('%', '')}%"></div>
+                        </div>
+                    </div>
+                `;
+            });
+            resultsHTML += '</div>';
+            
+            // Tampilkan statistik
+            let statsHTML = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="bi bi-clock"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">Waktu Deteksi</span>
+                            <span class="stat-value">${data.detection_time ? data.detection_time.toFixed(2) : '0.00'} detik</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="bi bi-grid"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">Total Objek</span>
+                            <span class="stat-value">${data.total_objects || 0}</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="bi bi-graph-up"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">Rata-rata Akurasi</span>
+                            <span class="stat-value">${data.average_confidence ? data.average_confidence.toFixed(2) : '0.00'}%</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Tampilkan tombol aksi
+            let actionsHTML = `
+                <div class="action-buttons">
+                    <button id="upload-again" class="btn-secondary">
+                        <i class="bi bi-arrow-counterclockwise"></i> Unggah Lagi
+                    </button>
+                    <a href="/history" class="btn-primary">
+                        <i class="bi bi-clock-history"></i> Lihat Riwayat
+                    </a>
+                </div>
+            `;
+            
+            detectionResultsContent.innerHTML = resultsHTML + statsHTML + actionsHTML;
+            
+            // Update tombol action
+            downloadResultBtn.onclick = () => {
+                if (data.image) {
+                    const a = document.createElement('a');
+                    a.href = `data:image/jpeg;base64,${data.image}`;
+                    a.download = `detected_${Date.now()}.jpg`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                } else if (data.video) {
+                    window.location.href = `/download_image/${data.video}`;
+                }
+            };
+            
+            shareTelegramBtn.onclick = () => {
+                showToast('Hasil deteksi akan dikirim ke Telegram', 'info');
+            };
+        } else {
+            detectionResultsContent.innerHTML = `
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i>
+                    <span>Tidak ada objek terdeteksi dalam file ini.</span>
+                </div>
+                <div class="action-buttons">
+                    <button id="upload-again" class="btn-secondary">
+                        <i class="bi bi-arrow-counterclockwise"></i> Unggah Lagi
+                    </button>
+                    <a href="/history" class="btn-primary">
+                        <i class="bi bi-clock-history"></i> Lihat Riwayat
+                    </a>
+                </div>
+            `;
+        }
+        
+        // Perbaiki ukuran preview setelah konten dimuat
+        setTimeout(() => {
+            adjustPreviewSize();
+        }, 100);
+    }
+    
+    // Fungsi untuk menyesuaikan ukuran preview
+    function adjustPreviewSize() {
+        const mediaPreviewContainer = document.querySelector('.media-preview-container');
+        if (!mediaPreviewContainer) return;
+        
+        // Hitung tinggi yang sesuai berdasarkan lebar container
+        const containerWidth = mediaPreviewContainer.offsetWidth;
+        const aspectRatio = 9/16; // 16:9 aspect ratio
+        const minHeight = 350; // Tinggi minimum
+        
+        // Hitung tinggi berdasarkan aspect ratio
+        let calculatedHeight = containerWidth * aspectRatio;
+        
+        // Gunakan tinggi minimum jika hasil kalkulasi lebih kecil
+        calculatedHeight = Math.max(calculatedHeight, minHeight);
+        
+        // Set tinggi container
+        mediaPreviewContainer.style.height = `${calculatedHeight}px`;
+    }
+    
+    // Fungsi untuk menangani upload file
+    async function handleFileUpload() {
+        if (!selectedFile) {
+            showToast('Silakan pilih file terlebih dahulu', 'error');
+            return;
+        }
+        
+        // Tampilkan loading
+        loading.style.display = 'flex';
+        progressBar.style.width = '0%';
+        
+        // Sembunyikan pesan error
+        errorMessage.style.display = 'none';
+        
+        try {
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            
+            // Simulasi progres upload
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += 5;
+                if (progress <= 95) {
+                    progressBar.style.width = `${progress}%`;
+                }
+            }, 100);
+            
+            const response = await fetch('/detect', {
+                method: 'POST',
+                body: formData
+            });
+            
+            clearInterval(progressInterval);
+            
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || 'Gagal memproses file');
+            }
+            
+            const data = await response.json();
+            
+            // Update progres ke 100%
+            progressBar.style.width = '100%';
+            
+            // Tampilkan hasil
+            displayDetectionResults(data);
+            
+            // Hapus file yang dipilih
+            removeSelectedFile();
+            
+            showToast('File berhasil diproses', 'success');
+            
+        } catch (error) {
+            console.error('Error uploading file:', error);
+            errorMessage.textContent = `Gagal memproses file: ${error.message}`;
+            errorMessage.style.display = 'block';
+            loading.style.display = 'none';
+            progressBar.style.width = '0%';
+            showToast(`Gagal memproses file: ${error.message}`, 'error');
+        }
+    }
+    
+    // Event listeners
+    selectFileBtn.addEventListener('click', () => {
+        fileInput.click();
+    });
+    
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            displaySelectedFile(e.target.files[0]);
+        }
+    });
+    
+    removeFileBtn.addEventListener('click', removeSelectedFile);
+    
+    detectButton.addEventListener('click', handleFileUpload);
+    
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+    });
+    
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('dragover');
+    });
+    
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        
+        if (e.dataTransfer.files.length > 0) {
+            displaySelectedFile(e.dataTransfer.files[0]);
+        }
+    });
+    
+    // Event listener untuk tombol "Unggah Lagi"
+    document.addEventListener('click', (e) => {
+        if (e.target.id === 'upload-again') {
+            resultsContainer.style.display = 'none';
+            removeSelectedFile();
+            fileInfo.style.display = 'none';
+            detectButtonContainer.style.display = 'none';
+        }
+    });
+    
+    // Inisialisasi halaman
+    function initUploadPage() {
+        // Kosongkan hasil jika ada
+        resultsContainer.style.display = 'none';
+        
+        // Sesuaikan ukuran preview saat inisialisasi
+        adjustPreviewSize();
+        
+        // Sesuaikan ukuran saat window resize
+        window.addEventListener('resize', adjustPreviewSize);
+    }
+    
+    // Jalankan inisialisasi
+    initUploadPage();
+});
+</script>
+<style>
+/* Upload Page Container */
+.upload-page {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Hero Section */
+.hero-section {
+    background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+    border-radius: 20px;
+    padding: 30px 40px;
+    margin-bottom: 25px;
+    color: white;
+}
+
+.hero-section h1 {
+    font-size: 2.2rem;
+    margin: 0 0 10px 0;
+}
+
+.hero-subtitle {
+    font-size: 1.15rem;
+    opacity: 0.9;
+    margin: 0;
+}
+
+/* Content Container */
+.content-container {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 25px;
+}
+
+/* Upload Section */
+.upload-section {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+/* Upload Card */
+.upload-card {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.upload-header {
+    padding: 25px;
+    background: linear-gradient(to right, #f0f4ff, #e6f7ff);
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.upload-header h2 {
+    margin: 0 0 8px 0;
+    color: #1e293b;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.upload-header p {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.95rem;
+}
+
+/* Upload Area */
+.upload-area {
+    padding: 35px 25px;
+    text-align: center;
+    transition: all 0.3s;
+    background-color: #f8fafc;
+}
+
+.upload-area:hover, .upload-area.dragover {
+    background-color: #eef2ff;
+}
+
+.upload-icon {
+    font-size: 3.5rem;
+    color: #4361ee;
+    margin-bottom: 15px;
+}
+
+.upload-area h3 {
+    margin-bottom: 10px;
+    color: #1e293b;
+    font-size: 1.3rem;
+}
+
+/* File Info */
+.file-info {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: white;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.file-preview {
+    margin-bottom: 15px;
+    max-height: 200px;
+    overflow: hidden;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.file-preview img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+}
+
+.file-details {
+    text-align: left;
+    margin-bottom: 15px;
+}
+
+.file-details p {
+    margin: 8px 0;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Loading Indicator */
+.loading-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 25px;
+    background-color: white;
+    border-radius: 12px;
+    margin: 20px 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.spinner {
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    border-top: 4px solid #4361ee;
+    width: 45px;
+    height: 45px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 15px;
+}
+
+.progress-container {
+    width: 100%;
+    height: 8px;
+    background-color: #e2e8f0;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 15px;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #4ade80, #3b82f6);
+    transition: width 0.3s ease;
+}
+
+/* Error Message */
+.error-message {
+    background-color: #fee2e2;
+    color: #b91c1c;
+    padding: 15px;
+    border-radius: 12px;
+    margin: 15px 25px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid #fecaca;
+}
+
+/* Results Container */
+.results-container {
+    margin-top: 25px;
+}
+
+.results-card {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.results-header {
+    padding: 20px 25px;
+    background: linear-gradient(to right, #f0f4ff, #e6f7ff);
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.results-header h2 {
+    margin: 0;
+    color: #1e293b;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.result-actions {
+    display: flex;
+    gap: 15px;
+}
+
+.results-body {
+    padding: 25px;
+}
+
+/* Media Preview Container */
+.media-preview-container {
+    width: 100%;
+    min-height: 350px;
+    background-color: #000;
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 25px;
+    position: relative;
+}
+
+.media-preview {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.result-image, .result-video {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+.image-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #b91c1c;
+    text-align: center;
+    padding: 20px;
+    height: 100%;
+}
+
+.image-error i {
+    font-size: 3rem;
+    margin-bottom: 15px;
+}
+
+/* Detection Results */
+.detection-results {
+    background-color: #f8fafc;
+    border-radius: 16px;
+    padding: 20px;
+}
+
+.results-list {
+    margin-bottom: 20px;
+}
+
+.result-item {
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e2e8f0;
+    animation: fadeIn 0.3s ease;
+}
+
+.result-item:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.result-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.disease {
+    font-weight: 600;
+    color: #1e293b;
+    font-size: 1.05rem;
+}
+
+.confidence {
+    font-weight: 600;
+    color: #3b82f6;
+}
+
+.confidence-bar {
+    width: 100%;
+    height: 6px;
+    background-color: #e9ecef;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 5px;
+}
+
+.confidence-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4ade80, #3b82f6);
+    border-radius: 3px;
+    transition: width 0.5s ease;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e2e8f0;
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.stat-icon i {
+    color: white;
+    font-size: 1.3rem;
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-label {
+    display: block;
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-bottom: 3px;
+}
+
+.stat-value {
+    font-weight: 700;
+    color: #1e293b;
+    font-size: 1.1rem;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+/* Tips Section */
+.tips-section {
+    background-color: white;
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.tips-header {
+    margin-bottom: 20px;
+}
+
+.tips-header h2 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 8px 0;
+    color: #1e293b;
+    font-size: 1.5rem;
+}
+
+.tips-header p {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.95rem;
+}
+
+.tips-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.tip-card {
+    background-color: #f8fafc;
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.3s;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.tip-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    border-color: #cbd5e1;
+}
+
+.tip-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tip-icon i {
+    color: white;
+    font-size: 1.5rem;
+}
+
+.tip-card h3 {
+    margin: 0 0 8px 0;
+    color: #1e293b;
+    font-size: 1.1rem;
+}
+
+.tip-card p {
+    margin: 0;
+    color: #64748b;
+    line-height: 1.5;
+}
+
+/* Alert Messages */
+.alert {
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: #f0f4ff;
+    border-left: 4px solid #4361ee;
+}
+
+.alert-error {
+    background-color: #fef2f2;
+    border-left-color: #ef4444;
+    color: #b91c1c;
+}
+
+.alert-info {
+    background-color: #f0f9ff;
+    border-left-color: #3b82f6;
+    color: #1e40af;
+}
+
+/* Image Modal */
+.image-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.image-modal .modal-content {
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.close-modal {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    color: white;
+    font-size: 2.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    z-index: 1001;
+}
+
+.close-modal:hover {
+    transform: scale(1.1);
+    color: #ff4444;
+}
+
+/* Button Styles */
+.btn-primary {
+    background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 6px rgba(67, 97, 238, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 8px rgba(67, 97, 238, 0.4);
+}
+
+.btn-secondary {
+    background-color: white;
+    color: #4361ee;
+    border: 2px solid #4361ee;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-secondary:hover {
+    background-color: #f0f4ff;
+    transform: translateY(-2px);
+}
+
+.btn-remove {
+    background-color: #fee2e2;
+    color: #b91c1c;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-remove:hover {
+    background-color: #fecaca;
+}
+
+.btn-icon {
+    width: 45px;
+    height: 45px;
+    border-radius: 12px;
+    background-color: white;
+    color: #475569;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.btn-icon:hover {
+    background-color: #f1f5f9;
+    transform: translateY(-2px);
+    color: #4361ee;
+}
+
+/* Animations */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .content-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .tips-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 25px;
+    }
+    
+    .hero-section h1 {
+        font-size: 1.8rem;
+    }
+    
+    .upload-card, .results-card {
+        border-radius: 16px;
+    }
+    
+    .upload-header, .results-header {
+        padding: 20px;
+    }
+    
+    .content-container {
+        padding: 0 15px;
+    }
+    
+    .upload-area {
+        padding: 30px 20px;
+    }
+    
+    .tips-section {
+        padding: 20px;
+    }
+    
+    .media-preview-container {
+        min-height: 300px;
+    }
+}
+
+@media (max-width: 480px) {
+    .upload-area h3 {
+        font-size: 1.2rem;
+    }
+    
+    .btn-primary, .btn-secondary {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .result-actions {
+        gap: 10px;
+    }
+    
+    .btn-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.1rem;
+    }
+    
+    .media-preview-container {
+        min-height: 250px;
+    }
+}
+</style>
+{% endblock %}

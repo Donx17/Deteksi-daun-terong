@@ -1,0 +1,658 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard">
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <h1>Website Deteksi Penyakit Pada Daun Terong</h1>
+            <p class="hero-subtitle">Sistem canggih YOLO bertenaga AI untuk deteksi dini dan diagnosis penyakit daun terong.</p>
+            
+            <div class="hero-buttons">
+                <a href="{{ url_for('upload') }}" class="btn-primary">
+                    <i class="bi bi-cloud-upload"></i> Upload Gambar
+                </a>
+                <a href="{{ url_for('live') }}" class="btn-secondary">
+                    <i class="bi bi-camera-video"></i> Deteksi Real-time
+                </a>
+            </div>
+        </div>
+        
+        <div class="hero-image">
+            <div class="detection-preview">
+                <div class="preview-placeholder">
+                    <i class="bi bi-leaf"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- System Status -->
+    <section class="status-section">
+        <div class="status-card">
+            <div class="status-header">
+                <i class="bi bi-info-circle"></i>
+                <h2>Status Sistem</h2>
+            </div>
+            <div class="status-content">
+                <div class="status-item">
+                    <div class="status-label">
+                        <i class="bi bi-camera"></i>
+                        <span>Kamera</span>
+                    </div>
+                    <div class="status-value" id="camera-status">Memeriksa...</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">
+                        <i class="bi bi-telegram"></i>
+                        <span>Telegram</span>
+                    </div>
+                    <div class="status-value" id="telegram-status">Memeriksa...</div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Quick Actions -->
+    <section class="actions-section">
+        <h2>Aksi Cepat</h2>
+        <div class="actions-grid">
+            <a href="{{ url_for('upload') }}" class="action-card">
+                <div class="action-icon upload">
+                    <i class="bi bi-cloud-upload"></i>
+                </div>
+                <h3>Upload Gambar</h3>
+                <p>Unggah gambar daun terong untuk deteksi instan</p>
+            </a>
+            
+            <a href="{{ url_for('live') }}" class="action-card">
+                <div class="action-icon live">
+                    <i class="bi bi-camera-video"></i>
+                </div>
+                <h3>Deteksi Real-time</h3>
+                <p>Gunakan kamera Anda untuk deteksi langsung</p>
+            </a>
+            
+            <a href="{{ url_for('history') }}" class="action-card">
+                <div class="action-icon history">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+                <h3>Riwayat Deteksi</h3>
+                <p>Lihat hasil deteksi sebelumnya</p>
+            </a>
+            
+            <a href="https://t.me/DaunTerongBot" target="_blank" class="action-card">
+                <div class="action-icon telegram">
+                    <i class="bi bi-telegram"></i>
+                </div>
+                <h3>Bot Telegram</h3>
+                <p>Gunakan bot Telegram untuk deteksi mudah</p>
+            </a>
+        </div>
+    </section>
+    
+    <!-- Features Section -->
+    <section class="features-section">
+        <h2>Fitur Utama</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="bi bi-robot"></i>
+                </div>
+                <h3>AI-Powered Detection</h3>
+                <p>Deteksi penyakit daun terong menggunakan teknologi AI terkini dengan akurasi tinggi.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="bi bi-speedometer2"></i>
+                </div>
+                <h3>Deteksi Cepat</h3>
+                <p>Hasil deteksi dalam hitungan detik tanpa perlu menunggu lama.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="bi bi-phone"></i>
+                </div>
+                <h3>Akses Mudah</h3>
+                <p>Gunakan dari mana saja melalui browser atau Telegram dengan antarmuka yang intuitif.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="bi bi-graph-up"></i>
+                </div>
+                <h3>Analisis Mendetail</h3>
+                <p>Dapatkan analisis lengkap dengan visualisasi dan statistik yang informatif.</p>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Telegram Integration -->
+    <section class="telegram-section">
+        <div class="telegram-content">
+            <div class="telegram-icon">
+                <i class="bi bi-telegram"></i>
+            </div>
+            <div class="telegram-text">
+                <h2>Integrasi Telegram</h2>
+                <p>Bot Telegram kami memungkinkan Anda mengirim foto atau video langsung dari aplikasi Telegram untuk deteksi penyakit daun terong.</p>
+            </div>
+            <a href="https://t.me/donText_bot" target="_blank" class="btn-telegram">
+                <i class="bi bi-telegram"></i> Buka Bot Telegram
+            </a>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Elemen DOM
+    const cameraStatus = document.getElementById('camera-status');
+    const telegramStatus = document.getElementById('telegram-status');
+    
+    // Fungsi untuk memperbarui status sistem
+    async function updateSystemStatus() {
+        try {
+            const response = await fetch('/api/system/status');
+            const data = await response.json();
+            
+            // Update status kamera
+            if (data.camera_connected) {
+                cameraStatus.textContent = 'Terhubung';
+                cameraStatus.className = 'status-value status-online';
+            } else {
+                cameraStatus.textContent = 'Tidak terhubung';
+                cameraStatus.className = 'status-value status-offline';
+            }
+            
+            // Update status Telegram
+            if (data.telegram_connected) {
+                telegramStatus.textContent = 'Aktif';
+                telegramStatus.className = 'status-value status-online';
+            } else {
+                telegramStatus.textContent = 'Tidak aktif';
+                telegramStatus.className = 'status-value status-offline';
+            }
+        } catch (error) {
+            console.error('Error updating system status:', error);
+            cameraStatus.textContent = 'Error';
+            cameraStatus.className = 'status-value status-error';
+            telegramStatus.textContent = 'Error';
+            telegramStatus.className = 'status-value status-error';
+        }
+    }
+    
+    // Fungsi utama inisialisasi
+    async function initDashboard() {
+        // Muat status awal
+        await updateSystemStatus();
+        
+        // Perbarui status setiap 30 detik
+        setInterval(updateSystemStatus, 30000);
+        
+        // Tambahkan animasi saat scroll
+        const featureCards = document.querySelectorAll('.feature-card');
+        const actionCards = document.querySelectorAll('.action-card');
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = 1;
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+        
+        featureCards.forEach(card => {
+            card.style.opacity = 0;
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            observer.observe(card);
+        });
+        
+        actionCards.forEach(card => {
+            card.style.opacity = 0;
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            observer.observe(card);
+        });
+    }
+    
+    // Jalankan inisialisasi
+    initDashboard();
+});
+</script>
+<style>
+/* Dashboard Container */
+.dashboard {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Hero Section */
+.hero-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: center;
+    margin-bottom: 40px;
+    border-radius: 20px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f0f4ff 0%, #e6f7ff 100%);
+    padding: 40px;
+}
+
+.hero-content h1 {
+    font-size: 2.5rem;
+    line-height: 1.2;
+    margin-bottom: 15px;
+    color: #1e293b;
+}
+
+.hero-subtitle {
+    font-size: 1.2rem;
+    color: #475569;
+    margin-bottom: 25px;
+    max-width: 600px;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 15px;
+}
+
+.btn-primary, .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 25px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+    color: white;
+    box-shadow: 0 4px 6px rgba(67, 97, 238, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 8px rgba(67, 97, 238, 0.4);
+}
+
+.btn-secondary {
+    background-color: white;
+    color: #4361ee;
+    border: 2px solid #4361ee;
+}
+
+.btn-secondary:hover {
+    background-color: #f0f4ff;
+    transform: translateY(-3px);
+}
+
+.hero-image {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.detection-preview {
+    width: 100%;
+    max-width: 400px;
+    aspect-ratio: 1;
+    background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.preview-placeholder {
+    font-size: 5rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Status Section */
+.status-section {
+    margin-bottom: 40px;
+}
+
+.status-card {
+    background: white;
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.status-card:hover {
+    transform: translateY(-5px);
+}
+
+.status-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.status-header h2 {
+    margin: 0;
+    color: #1e293b;
+    font-size: 1.5rem;
+}
+
+.status-content {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.status-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background-color: #f8fafc;
+    border-radius: 12px;
+    transition: all 0.2s;
+}
+
+.status-item:hover {
+    background-color: #f1f5f9;
+    transform: translateX(5px);
+}
+
+.status-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #475569;
+    font-weight: 500;
+}
+
+.status-label i {
+    font-size: 1.2rem;
+}
+
+.status-value {
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.95rem;
+}
+
+.status-online {
+    color: #166534;
+    background-color: #dcfce7;
+}
+
+.status-offline {
+    color: #7f1d1d;
+    background-color: #fee2e2;
+}
+
+.status-error {
+    color: #92400e;
+    background-color: #ffedd5;
+}
+
+/* Actions Section */
+.actions-section {
+    margin-bottom: 40px;
+}
+
+.actions-section h2 {
+    font-size: 1.8rem;
+    color: #1e293b;
+    margin-bottom: 25px;
+}
+
+.actions-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+.action-card {
+    background: white;
+    border-radius: 16px;
+    padding: 25px 20px;
+    text-decoration: none;
+    color: #1e293b;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    border: 1px solid transparent;
+}
+
+.action-card:hover {
+    transform: translateY(-7px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    border-color: #e2e8f0;
+}
+
+.action-icon {
+    width: 70px;
+    height: 70px;
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+    font-size: 1.8rem;
+}
+
+.action-icon i {
+    color: white;
+}
+
+.action-icon.upload {
+    background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+}
+
+.action-icon.live {
+    background: linear-gradient(135deg, #f72585 0%, #b5179e 100%);
+}
+
+.action-icon.history {
+    background: linear-gradient(135deg, #4cc9f0 0%, #3a86ff 100%);
+}
+
+.action-icon.telegram {
+    background: linear-gradient(135deg, #0088cc 0%, #006699 100%);
+}
+
+.action-card h3 {
+    margin: 0 0 10px 0;
+    font-size: 1.2rem;
+    color: #1e293b;
+}
+
+.action-card p {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+/* Features Section */
+.features-section {
+    margin-bottom: 40px;
+}
+
+.features-section h2 {
+    font-size: 1.8rem;
+    color: #1e293b;
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 25px;
+}
+
+.feature-card {
+    background: white;
+    border-radius: 16px;
+    padding: 25px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-7px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.feature-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+}
+
+.feature-icon i {
+    color: white;
+}
+
+.feature-card h3 {
+    margin: 0 0 15px 0;
+    font-size: 1.3rem;
+    color: #1e293b;
+}
+
+.feature-card p {
+    margin: 0;
+    color: #64748b;
+    line-height: 1.6;
+}
+
+/* Telegram Section */
+.telegram-section {
+    background: linear-gradient(135deg, #0088cc 0%, #006699 100%);
+    border-radius: 20px;
+    padding: 30px;
+    color: white;
+}
+
+.telegram-content {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+}
+
+.telegram-icon {
+    width: 80px;
+    height: 80px;
+    background-color: white;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.telegram-icon i {
+    font-size: 3rem;
+    color: #0088cc;
+}
+
+.telegram-text h2 {
+    margin: 0 0 10px 0;
+    font-size: 1.8rem;
+}
+
+.telegram-text p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 1.1rem;
+}
+
+.btn-telegram {
+    margin-left: auto;
+    background: white;
+    color: #0088cc;
+    padding: 12px 25px;
+    border-radius: 10px;
+    font-weight: 600;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s;
+    font-size: 1.1rem;
+}
+
+.btn-telegram:hover {
+    background-color: #e6f7ff;
+    transform: translateY(-3px);
+    box-shadow: 0 4px 6px rgba(0, 136, 204, 0.2);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .hero-section {
+        grid-template-columns: 1fr;
+        text-align: center;
+        padding: 30px;
+    }
+    
+    .hero-buttons {
+        justify-content: center;
+    }
+    
+    .actions-grid, .features-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .telegram-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .btn-telegram {
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .hero-content h1 {
+        font-size: 2rem;
+    }
+    
+    .hero-subtitle {
+        font-size: 1rem;
+    }
+    
+    .actions-grid, .features-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .status-content {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}

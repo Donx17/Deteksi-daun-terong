@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Meta tags untuk pengaturan karakter dan viewport -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    
+    <!-- Judul halaman -->
+    <title>DETEKSI PENYAKIT DAUN TERONG</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
+    
+    <!-- Menghubungkan file CSS eksternal -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <!-- Menghubungkan font Google -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
+    
+    <!-- Chart.js untuk statistik -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Socket.IO untuk komunikasi real-time -->
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+</head>
+<body>
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+    
+    <!-- Navigasi Bar -->
+    <nav class="navbar">
+        <!-- Brand Logo dan Nama -->
+        <div class="nav-brand">
+            <svg class="logo" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2z"/>
+                <path d="M12 16c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"/>
+            </svg>
+            <span>Penyakit Daun Terong</span>
+        </div>
+
+        <!-- Tombol Menu untuk Mobile -->
+        <button class="navbar-toggle" aria-label="Toggle navigation">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </button>
+
+        <div class="nav-links">
+            <!-- Link Dashboard -->
+            <a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">
+                <i class="bi bi-house"></i>
+                <span>Dashboard</span>
+            </a>
+
+            <!-- Link Upload -->
+            <a href="{{ url_for('upload') }}" class="nav-link {% if request.endpoint == 'upload' %}active{% endif %}">
+                <i class="bi bi-cloud-upload"></i>
+                <span>Upload</span>
+            </a>
+
+            <!-- Link Real-time -->
+            <a href="{{ url_for('live') }}" class="nav-link {% if request.endpoint == 'live' %}active{% endif %}">
+                <i class="bi bi-camera-video"></i>
+                <span>Real-time</span>
+            </a>
+
+            <!-- Link History -->
+            <a href="{{ url_for('history') }}" class="nav-link {% if request.endpoint == 'history' %}active{% endif %}">
+                <i class="bi bi-clock-history"></i>
+                <span>History</span>
+            </a>
+        </div>
+        
+        <!-- Telegram Info -->
+        <div class="telegram-info">
+            <i class="bi bi-telegram" style="color: #0088cc;"></i>
+            <span>Bot: @donText_bot</span>
+        </div>
+    </nav>
+
+    <!-- Konten Utama -->
+    <main class="content">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Menghubungkan file JavaScript eksternal -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    <!-- Definisi fungsi showToast global -->
+    <script>
+        // Definisi fungsi showToast yang tersedia secara global
+        function showToast(message, type = 'info') {
+            const toastContainer = document.getElementById('toast-container');
+            if (!toastContainer) return;
+            
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `
+                <div class="toast-icon">
+                    ${type === 'success' ? '<i class="bi bi-check-circle"></i>' : 
+                      type === 'error' ? '<i class="bi bi-exclamation-circle"></i>' : 
+                      '<i class="bi bi-info-circle"></i>'}
+                </div>
+                <div class="toast-message">${message}</div>
+                <div class="toast-close"><i class="bi bi-x"></i></div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            // Auto-dismiss setelah 5 detik
+            setTimeout(() => {
+                toast.classList.add('toast-hide');
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toastContainer.removeChild(toast);
+                    }
+                }, 500);
+            }, 5000);
+            
+            // Tambahkan event listener untuk tombol close
+            toast.querySelector('.toast-close').addEventListener('click', () => {
+                toast.classList.add('toast-hide');
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toastContainer.removeChild(toast);
+                    }
+                }, 500);
+            });
+        }
+    </script>
+    
+    <!-- Blok untuk script tambahan -->
+    {% block scripts %}{% endblock %}
+</body>
+</html>
