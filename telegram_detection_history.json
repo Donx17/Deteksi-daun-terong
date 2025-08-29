@@ -1,0 +1,150 @@
+[
+    {
+        "id": "43ee1f50-6395-4f02-b63c-1a425465490c",
+        "original_filename": "telegram_6909032786_1755568253_05bd414acba849d88ae61e806294a4ce.jpg",
+        "filename": "6909032786_1755568253_05bd414acba849d88ae61e806294a4ce.jpg",
+        "output_filename": "bot_6909032786_1755568253_05bd414acba849d88ae61e806294a4ce.jpg",
+        "results": [
+            {
+                "objek": "Kuning-Daun-Terong",
+                "akurasi": "95.04%",
+                "koordinat": [
+                    0,
+                    537,
+                    401,
+                    1023
+                ]
+            },
+            {
+                "objek": "Bercak-Daun-Terong",
+                "akurasi": "93.79%",
+                "koordinat": [
+                    430,
+                    0,
+                    839,
+                    492
+                ]
+            },
+            {
+                "objek": "Bercak-Daun-Terong",
+                "akurasi": "91.34%",
+                "koordinat": [
+                    440,
+                    530,
+                    833,
+                    1018
+                ]
+            },
+            {
+                "objek": "Daun-Terong-Sehat",
+                "akurasi": "90.67%",
+                "koordinat": [
+                    909,
+                    583,
+                    1277,
+                    1024
+                ]
+            },
+            {
+                "objek": "Daun-Terong-Sehat",
+                "akurasi": "82.83%",
+                "koordinat": [
+                    926,
+                    78,
+                    1221,
+                    476
+                ]
+            },
+            {
+                "objek": "Kuning-Daun-Terong",
+                "akurasi": "76.71%",
+                "koordinat": [
+                    0,
+                    0,
+                    359,
+                    513
+                ]
+            }
+        ],
+        "timestamp": "2025-08-19 09:51:04",
+        "detection_time": 9.033676624298096,
+        "total_objects": 6,
+        "average_confidence": 88.39666666666666,
+        "media_type": "image",
+        "source": "telegram"
+    },
+    {
+        "id": "99879517-b33b-46e5-870a-c6c06879da4f",
+        "original_filename": "telegram_6909032786_1755569999_69bb040ba7244989ae90d38ee3772b50.jpg",
+        "filename": "6909032786_1755569999_69bb040ba7244989ae90d38ee3772b50.jpg",
+        "output_filename": "bot_6909032786_1755569999_69bb040ba7244989ae90d38ee3772b50.jpg",
+        "results": [
+            {
+                "objek": "Bercak-Daun-Terong",
+                "akurasi": "91.62%",
+                "koordinat": [
+                    427,
+                    0,
+                    840,
+                    487
+                ]
+            },
+            {
+                "objek": "Bercak-Daun-Terong",
+                "akurasi": "88.30%",
+                "koordinat": [
+                    436,
+                    531,
+                    836,
+                    1019
+                ]
+            },
+            {
+                "objek": "Daun-Terong-Sehat",
+                "akurasi": "87.56%",
+                "koordinat": [
+                    910,
+                    580,
+                    1276,
+                    1024
+                ]
+            },
+            {
+                "objek": "Kuning-Daun-Terong",
+                "akurasi": "87.19%",
+                "koordinat": [
+                    0,
+                    539,
+                    406,
+                    1021
+                ]
+            },
+            {
+                "objek": "Kuning-Daun-Terong",
+                "akurasi": "81.68%",
+                "koordinat": [
+                    0,
+                    0,
+                    363,
+                    526
+                ]
+            },
+            {
+                "objek": "Daun-Terong-Sehat",
+                "akurasi": "77.63%",
+                "koordinat": [
+                    923,
+                    73,
+                    1215,
+                    482
+                ]
+            }
+        ],
+        "timestamp": "2025-08-19 10:20:02",
+        "detection_time": 0.47036027908325195,
+        "total_objects": 6,
+        "average_confidence": 85.66333333333334,
+        "media_type": "image",
+        "source": "telegram"
+    }
+]

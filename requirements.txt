@@ -1,0 +1,9 @@
+flask
+flask-cors
+python-dotenv
+opencv-python
+ultralytics
+numpy
+werkzeug
+python-telegram-bot
+asyncio

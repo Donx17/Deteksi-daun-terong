@@ -1,0 +1,100 @@
+[
+    {
+        "id": "0cab3bac-2e60-43f8-ba7d-03fe2cb3e397",
+        "original_filename": "Desain_tanpa_judul.png",
+        "filename": "473e3aa1f152429ea9e12799ecf72d34_Desain_tanpa_judul.png",
+        "output_filename": "detected_473e3aa1f152429ea9e12799ecf72d34_Desain_tanpa_judul.png",
+        "results": [
+            {
+                "objek": "Kuning-Daun-Terong",
+                "akurasi": "94.97%",
+                "koordinat": [
+                    0,
+                    840,
+                    627,
+                    1599
+                ]
+            },
+            {
+                "objek": "Bercak-Daun-Terong",
+                "akurasi": "93.64%",
+                "koordinat": [
+                    671,
+                    0,
+                    1312,
+                    769
+                ]
+            },
+            {
+                "objek": "Bercak-Daun-Terong",
+                "akurasi": "91.19%",
+                "koordinat": [
+                    687,
+                    828,
+                    1303,
+                    1591
+                ]
+            },
+            {
+                "objek": "Daun-Terong-Sehat",
+                "akurasi": "91.00%",
+                "koordinat": [
+                    1423,
+                    912,
+                    1997,
+                    1600
+                ]
+            },
+            {
+                "objek": "Daun-Terong-Sehat",
+                "akurasi": "81.56%",
+                "koordinat": [
+                    1445,
+                    126,
+                    1909,
+                    746
+                ]
+            },
+            {
+                "objek": "Kuning-Daun-Terong",
+                "akurasi": "75.78%",
+                "koordinat": [
+                    0,
+                    0,
+                    560,
+                    801
+                ]
+            }
+        ],
+        "timestamp": "2025-08-19 10:02:34",
+        "detection_time": 10.760557889938354,
+        "total_objects": 6,
+        "average_confidence": 88.02333333333333,
+        "media_type": "image",
+        "source": "web"
+    },
+    {
+        "id": "52d7f9f0-db36-448a-b838-2703bd38d637",
+        "original_filename": "IMG_20250819_022803_729.jpg",
+        "filename": "03d7facfb9d84e8ea00cd31044367b0e_IMG_20250819_022803_729.jpg",
+        "output_filename": "detected_03d7facfb9d84e8ea00cd31044367b0e_IMG_20250819_022803_729.jpg",
+        "results": [
+            {
+                "objek": "Kuning-Daun-Terong",
+                "akurasi": "95.22%",
+                "koordinat": [
+                    6,
+                    34,
+                    1264,
+                    955
+                ]
+            }
+        ],
+        "timestamp": "2025-08-19 10:18:33",
+        "detection_time": 0.6226246356964111,
+        "total_objects": 1,
+        "average_confidence": 95.22,
+        "media_type": "image",
+        "source": "web"
+    }
+]
